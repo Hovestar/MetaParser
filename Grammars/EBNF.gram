@@ -1,0 +1,10 @@
+START	::= Seq
+Seq		::= EBNF {NEWLINE EBNF}
+EBNF	::= Name "::=" Union
+Union	::= Concat {"|" Concat}
+Concat	::= Extend {Extend}
+Extend	::= Opt | "{" Union "}"
+Opt		::= Atom "?"?
+Atom	::= Term | Name | (SPWHITES "(" Union ")" SPWHITES)
+Term	::= SPWHITES QUOTE TILLNEXTQUOTE QUOTE SPWHITES
+Name	::= SPWHITES ALPHANUMS SPWHITES

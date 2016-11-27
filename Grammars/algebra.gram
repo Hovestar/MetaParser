@@ -1,0 +1,10 @@
+START	::= Eqns
+Eqns	::= Eqn {Eqn}
+Eqn		::= State "=" State
+State	::= Sub
+Sub		::= Mul {"-" Mul} | Mul {"+" Mul}
+Mul		::= Exp {"*" Exp} | Exp {"/" Exp}
+Exp		::= Atom {"^" Atom} 
+Atom	::= Num | Var | "(" State ")"
+Num		::= NUM {NUM}
+Var		::= ALPHA {ALPHA} 
