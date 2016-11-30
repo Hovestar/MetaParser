@@ -1,10 +1,10 @@
 START	::= Seq
 Seq		::= EBNF {NEWLINE EBNF}
 EBNF	::= Name "::=" Union
-Union	::= Concat {"|" Concat}
+Union	::= Concat {WHITESPACE "|" Concat}
 Concat	::= Extend {Extend}
 Extend	::= Opt | "{" Union "}"
-Opt		::= Atom "?"?
+Opt		::= "[" Union "]" | Atom
 Atom	::= Term | Name | (SPWHITES "(" Union ")" SPWHITES)
 Term	::= SPWHITES QUOTE TILLNEXTQUOTE QUOTE SPWHITES
 Name	::= SPWHITES ALPHANUMS SPWHITES

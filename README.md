@@ -35,3 +35,4 @@ Unfortunately I didn't have a good way to tell the parser to ignore charactors t
 
 ## Shameless Self Promotion
 I'm a junior at CU Boulder and I don't have a summer internship yet. If you think you'd like to interview me (or just ask me a question about this code) you can get me at <firstName>.<lastName>@colorado.edu. Oh and my name is Seth Hovestol. 
+My friend Chance Roberts also pair programmed on this with me and he has the same email schema if you'd like to interview him.

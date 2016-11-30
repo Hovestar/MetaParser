@@ -79,7 +79,7 @@ class EBNFParser:
 		string=string.lstrip(" \t")
 		i = 0
 		for c in string:
-			if not c.isalnum():
+			if not c.isalnum() and c not in ["_"]:
 				break
 			i+=1
 		name = string[:i]

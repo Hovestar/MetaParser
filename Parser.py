@@ -32,7 +32,7 @@ class Parser:
 	def parse(self,string):
 		tree,string = self.parser(string,self.rules["START"])
 		if string.strip()=="":
-			return tree
+			return tree[0]
 		raise ParseError("Full input not consumed. This is left:\n"+string.strip()+"\n with this tree:\n"+"\n".join(map(str,tree)))
 	def topLevel(self,string,name):
 		lst,string = self.parser(string,self.rules[name])
@@ -41,45 +41,61 @@ class Parser:
 		return [ParseObj(name,*lst)],string
 	def parser(self,string,tree):
 		if isinstance(tree,ParseObjects.Name):
-			name = tree.val1
-			if name in self.special:
-				return self.doSpecial(name,string)
-			return self.topLevel(string,name)
+			return self.doName(string,tree)
 		if isinstance(tree,ParseObjects.Concat):
-			part1,string = self.parser(string,tree.e1)
-			part2,string = self.parser(string,tree.e2)
-			return part1 + part2,string
+			return self.doConcat(string,tree)
 		if isinstance(tree,ParseObjects.Union):
-			try:
-				return self.parser(string,tree.e1)
-			except ParseError:
-				pass
-			return self.parser(string,tree.e2)
+			return self.doUnion(string,tree)
 		if isinstance(tree,ParseObjects.Extend):
-			def helper(exp,string):
-				try:
-					print(tree)
-					print(string)
-					end,string = self.parser(string,tree.e1)
-					return helper(exp+end,string)
-				except ParseError:
-					return exp,string
-			return helper([],string)
+			return self.doExtend(string,tree)
 		if isinstance(tree,ParseObjects.Opt):
-			try:
-				return self.parser(string,tree.e1)
-			except ParseError:
-				return [],string
+			return self.doOpt(string,tree)
 		if isinstance(tree,ParseObjects.Term):
-			val = tree.val1
-			if string[:len(val)]!=val:
-				try:
-					place = string[string.index("\n")]
-				except ValueError:
-					place = string
-				raise ParseError("Expected "+val + " at: "+place )
-			return [val],string[len(val):]
+			return self.doTerm(string,tree)
 		raise ParseError("How'd I get here?!")
+	def doName(self,string,tree):
+		name = tree.val1
+		if name in self.special:
+			try:
+				res = self.doSpecial(name,string)
+			except ParseError:
+				raise ParseError("???")
+			return res
+		return self.topLevel(string,name)
+	def doConcat(self,string,tree):
+		part1,string = self.parser(string,tree.e1)
+		part2,string = self.parser(string,tree.e2)
+		return part1 + part2,string
+	def doUnion(self,string,tree):
+		try:
+			return self.parser(string,tree.e1)
+		except ParseError:
+			pass
+		return self.parser(string,tree.e2)
+	def doExtend(self,string,tree):
+		def helper(exp,string):
+			if(string == ""):
+				return exp,string
+			try:
+				end,string = self.parser(string,tree.e1)
+				return helper(exp+end,string)
+			except ParseError:
+				return exp,string
+		return helper([],string)
+	def doOpt(self,string,tree):
+		try:
+			return self.parser(string,tree.e1)
+		except ParseError:
+			return [],string
+	def doTerm(self,string,tree):
+		val = tree.val1
+		if len(string)< len(val) or string[:len(val)]!=val:
+			try:
+				place = string[string.index("\n")]
+			except ValueError:
+				place = string
+			raise ParseError("Expected "+val + " at: "+place )
+		return [val],string[len(val):]
 	def doSpecial(self, special, string):
 		if string == "" and special not in ["SPWHITES","WHITESPACES"]:
 			raise ParseError("Buffer is empty. Looking for "+special)
@@ -91,7 +107,7 @@ class Parser:
 			if string[0].isdigit():
 				return [string[0]],string[1:]
 			raise ParseError("Expected a number")
-		if special == " ALPHANUM":
+		if special == "ALPHANUM":
 			if string[0].isalnum():
 				return [string[0]],string[1:]
 			raise ParseError("Expected a letter or a number")
@@ -150,7 +166,7 @@ class Parser:
 			ind = string[1:].index('"')+1
 			while(string[ind-1]=='\\'):
 				ind += string[ind+1:].index('"')+1
-			return [string[1:ind]],string[ind+1:]
+			return [string[1:ind]],string[ind:]
 		raise ParseError("Oops implementation error. Looking for "+special)
 
 if __name__=="__main__":
@@ -166,5 +182,5 @@ if __name__=="__main__":
 	with open(grammarFile,'r') as f:
 		text = f.read()
 	parser = Parser(text)
-	tmp = parser.parse(text)
+	tmp = parser.parse(sentence)
 	print(tmp)
